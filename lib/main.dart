@@ -1,3 +1,5 @@
+import 'package:chat_app/theme.dart';
+import 'package:chat_app/views/onboarding.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -9,6 +11,12 @@ class ChatApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return MaterialApp(
+      theme: lightThemeData(context),
+      darkTheme: darkThemeData(context),
+      themeMode: ThemeMode.dark,
+      home: const OnBoardingView(),
+      debugShowCheckedModeBanner: false,
+    );
   }
 }
