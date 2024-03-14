@@ -1,7 +1,8 @@
 import 'package:chat_app/theme.dart';
+import 'package:chat_app/views/first_view.dart';
 // import 'package:chat_app/views/onboarding.dart';
 // import 'package:chat_app/views/signin_view.dart';
-import 'package:chat_app/views/signup_view.dart';
+// import 'package:chat_app/views/signup_view.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -17,7 +18,7 @@ class ChatApp extends StatelessWidget {
       theme: lightThemeData(context),
       darkTheme: darkThemeData(context),
       themeMode: ThemeMode.dark,
-      home: const SingUpView(),
+      home: const FirstView(),
       debugShowCheckedModeBanner: false,
     );
   }
