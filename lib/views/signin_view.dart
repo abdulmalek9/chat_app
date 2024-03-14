@@ -16,7 +16,14 @@ class SignInView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14.0),
           child: Column(
             children: [
-              Image.asset("assets/Logo.png"),
+              const SizedBox(
+                height: 40,
+              ),
+              Image.asset(
+                "assets/Logo.png",
+                width: 250,
+                height: 250,
+              ),
               const Align(
                 alignment: Alignment.topLeft,
                 child: Text(
@@ -27,15 +34,17 @@ class SignInView extends StatelessWidget {
               const SizedBox(
                 height: 12,
               ),
-              const CustomTextField(
-                hintText: "Username",
+              const CustomTextFormField(
+                hintText: "Email",
               ),
               const SizedBox(
                 height: 12,
               ),
-              const CustomTextField(hintText: "Password"),
+              const CustomTextFormField(hintText: "Password"),
               const SizedBox(height: 18),
               CustomButton(
+                width: 100,
+                height: 34,
                 buttonTitle: "Login",
                 color: Theme.of(context).primaryColor,
               ),
