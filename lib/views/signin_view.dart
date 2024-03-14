@@ -49,6 +49,9 @@ class SignInView extends StatelessWidget {
                 color: Theme.of(context).primaryColor,
               ),
               PageFooter(
+                onPressed: () {
+                  Navigator.pushNamed(context, "signup_view");
+                },
                 actionText: "Sign Up",
                 color: Theme.of(context).primaryColor,
               )

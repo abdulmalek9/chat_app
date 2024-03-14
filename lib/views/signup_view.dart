@@ -67,7 +67,12 @@ class SingUpView extends StatelessWidget {
                 color: kSecondaryColor,
                 width: 100,
                 height: 35),
-            const PageFooter(actionText: "Login", color: kSecondaryColor),
+            PageFooter(
+                onPressed: () {
+                  Navigator.pushNamed(context, "signin_view");
+                },
+                actionText: "Login",
+                color: kSecondaryColor),
           ],
         ),
       ),

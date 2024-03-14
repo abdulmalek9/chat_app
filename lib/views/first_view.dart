@@ -25,7 +25,10 @@ class FirstView extends StatelessWidget {
               height: 14,
             ),
             CustomButton(
-                buttonTitle: "Login",
+                onTap: () {
+                  Navigator.pushNamed(context, "signin_view");
+                },
+                buttonTitle: "Sign In",
                 color: Theme.of(context).primaryColor,
                 width: MediaQuery.of(context).size.width,
                 height: 40),
@@ -33,6 +36,9 @@ class FirstView extends StatelessWidget {
               height: 14,
             ),
             CustomButton(
+                onTap: () {
+                  Navigator.pushNamed(context, "signup_view");
+                },
                 buttonTitle: "Sign Up",
                 color: kSecondaryColor,
                 width: MediaQuery.of(context).size.width,

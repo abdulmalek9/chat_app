@@ -5,9 +5,11 @@ class PageFooter extends StatelessWidget {
     super.key,
     required this.actionText,
     required this.color,
+    this.onPressed,
   });
   final String actionText;
   final Color color;
+  final void Function()? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +24,7 @@ class PageFooter extends StatelessWidget {
           style: ButtonStyle(
               padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
                   const EdgeInsets.symmetric())),
-          onPressed: () {},
+          onPressed: onPressed,
           child: Text(
             actionText,
             style: TextStyle(

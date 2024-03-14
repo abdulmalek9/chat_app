@@ -1,4 +1,5 @@
 // import 'package:chat_app/constant.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -32,19 +33,24 @@ class OnBoardingView extends StatelessWidget {
             const SizedBox(
               height: 48,
             ),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  "Skip",
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                ),
-                Icon(
-                  Icons.keyboard_arrow_right_outlined,
-                  size: 18,
-                )
-              ],
+            GestureDetector(
+              onTap: () {
+                Navigator.pushReplacementNamed(context, 'first_view');
+              },
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    "Skip",
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_right_outlined,
+                    size: 18,
+                  )
+                ],
+              ),
             )
           ],
         ),
