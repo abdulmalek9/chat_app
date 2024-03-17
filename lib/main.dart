@@ -1,4 +1,5 @@
 import 'package:chat_app/theme.dart';
+import 'package:chat_app/views/account_view.dart';
 import 'package:chat_app/views/first_view.dart';
 import 'package:chat_app/views/onboarding.dart';
 import 'package:chat_app/views/signin_view.dart';
@@ -30,6 +31,7 @@ class ChatApp extends StatelessWidget {
         'onboarding_view': (context) => const OnBoardingView(),
         'signin_view': (context) => const SignInView(),
         'signup_view': (context) => const SingUpView(),
+        'account_view': (context) => AccountView()
       },
       theme: lightThemeData(context),
       darkTheme: darkThemeData(context),
