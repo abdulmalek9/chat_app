@@ -1,5 +1,6 @@
 import 'package:chat_app/theme.dart';
 import 'package:chat_app/views/account_view.dart';
+import 'package:chat_app/views/chat_view.dart';
 import 'package:chat_app/views/first_view.dart';
 import 'package:chat_app/views/onboarding.dart';
 import 'package:chat_app/views/signin_view.dart';
@@ -15,7 +16,7 @@ const supabaseUrl = 'https://nrvgmmktbfjkyvwfmwsy.supabase.co';
 String supabaseKey = dotenv.env['SUPABASE_KEY'].toString();
 Future<void> main() async {
   await dotenv.load(fileName: "lib/.env"); //path to your .env file);
-  print("======================= s $supabaseKey");
+  // print("======================= s $supabaseKey");
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
   runApp(const ChatApp());
 }
@@ -31,7 +32,8 @@ class ChatApp extends StatelessWidget {
         'onboarding_view': (context) => const OnBoardingView(),
         'signin_view': (context) => const SignInView(),
         'signup_view': (context) => const SingUpView(),
-        'account_view': (context) => AccountView()
+        'account_view': (context) => const AccountView(),
+        const ChatView().chatViewId: (context) => const ChatView(),
       },
       theme: lightThemeData(context),
       darkTheme: darkThemeData(context),

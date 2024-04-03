@@ -1,10 +1,37 @@
-// import 'package:chat_app/constant.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'dart:async';
 
-class OnBoardingView extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class OnBoardingView extends StatefulWidget {
   const OnBoardingView({super.key});
+
+  @override
+  State<OnBoardingView> createState() => _OnBoardingViewState();
+}
+
+class _OnBoardingViewState extends State<OnBoardingView> {
+  late final StreamSubscription<AuthState> _authStateSubscription;
+  SupabaseClient supabase = Supabase.instance.client;
+  bool _redirecting = false;
+  @override
+  void initState() {
+    _authStateSubscription = supabase.auth.onAuthStateChange.listen((data) {
+      if (_redirecting) return;
+      final session = data.session;
+      if (session != null) {
+        _redirecting = true;
+        Navigator.of(context).pushReplacementNamed('account_view');
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _authStateSubscription.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

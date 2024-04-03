@@ -1,9 +1,9 @@
+// import 'package:chat_app/views/chat_view.dart';
 import 'package:chat_app/widgets/custom_button.dart';
 import 'package:chat_app/widgets/custom_text_field.dart';
 import 'package:chat_app/widgets/page_footer.dart';
-import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
 
@@ -35,7 +35,8 @@ class _SignInViewState extends State<SignInView> {
         );
         if (!mounted) return;
 
-        Navigator.pushReplacementNamed(context, 'account_view');
+        Navigator.pushReplacementNamed(
+            context, 'account_view'); //const ChatView().chat_id
       } on AuthException catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.message)),
@@ -65,7 +66,7 @@ class _SignInViewState extends State<SignInView> {
       final session = data.session;
       if (session != null) {
         _redirecting = true;
-        Navigator.of(context).pushReplacementNamed('/account');
+        Navigator.of(context).pushReplacementNamed('account_view');
       }
     });
     super.initState();

@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:chat_app/models/contact_model.dart';
 import 'package:chat_app/supabase/supabase_class.dart';
+import 'package:chat_app/views/chat_view.dart';
 import 'package:chat_app/widgets/conntact_widget.dart';
 import 'package:chat_app/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
@@ -14,28 +17,48 @@ class AccountView extends StatefulWidget {
 
 class _AccountViewState extends State<AccountView> {
   final SupabaseClient supabase = Supabase.instance.client;
-  Map<String, dynamic>? info;
+  List<Map<String, dynamic>> info = [];
   List<ContactModel> conntact = [];
-  dynamic contact_id;
-  Future<bool> cheackIfExist(String email) async {
-    try {
-      final response =
-          await supabase.from('profiles').select('id').eq('email', email);
+  bool isLoading = true;
 
-      if (response.isEmpty) {
-        return false;
-      } else {
-        setState(() {
-          contact_id = response[0]['id'];
-        });
-        print("id = = = = = = = $contact_id");
-        return true;
-      }
-    } catch (e) {
-      return false;
+  initContact() async {
+    List<Map<String, dynamic>> initContact =
+        await SupabaseServices().getContact();
+    log("init contact is = = = = = = $initContact");
+    if (initContact.isEmpty) {
+      return [];
+    } else {
+      return initContact;
     }
+  }
 
-    // print("object======================== $response");
+  @override
+  void initState() {
+    if (isLoading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        info = await initContact();
+        if (info.isEmpty) {
+          print("object Hello Worlld ");
+
+          return;
+        } else {
+          log("coco == = = = = ${info[0]['email']}");
+          for (int i = 0; i < info.length; i++) {
+            setState(() {
+              conntact.add(ContactModel(
+                  name: info[i]["contactName"],
+                  email: info[i]["email"],
+                  contactId: info[i]['contactUserId']));
+            });
+          }
+          isLoading = false;
+        }
+      });
+    }
+    isLoading = false;
+    log("inof is = = = = = = = $info");
+
+    super.initState();
   }
 
   @override
@@ -64,7 +87,7 @@ class _AccountViewState extends State<AccountView> {
         ),
         actions: [
           IconButton(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 18),
               onPressed: () async {
                 await supabase.auth.signOut();
                 if (!context.mounted) return;
@@ -73,14 +96,26 @@ class _AccountViewState extends State<AccountView> {
               icon: const Icon(Icons.logout))
         ],
       ),
-      body: ListView.builder(
-        itemBuilder: (context, i) => ContactWidget(
-          image: "assets/majed.jpg",
-          name: conntact[i].name!,
-          lastmessage: "Hello, Do you wanna build a snow man?",
-        ),
-        itemCount: conntact.isEmpty ? 0 : conntact.length,
-      ),
+      body: isLoading == true
+          ? conntact.isEmpty
+              ? const SizedBox()
+              : const Center(
+                  child: CircularProgressIndicator(),
+                )
+          : ListView.builder(
+              itemBuilder: (context, i) => GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, const ChatView().chatViewId,
+                      arguments: conntact[i].contactId);
+                },
+                child: ContactWidget(
+                  image: "assets/majed.jpg",
+                  name: conntact[i].name!,
+                  lastmessage: "Hello, Do you wanna build a snow man?",
+                ),
+              ),
+              itemCount: conntact.isEmpty ? 0 : conntact.length,
+            ),
     ));
   }
 
@@ -119,20 +154,45 @@ class _AccountViewState extends State<AccountView> {
               ElevatedButton(
                 onPressed: () async {
                   print("eee====$email");
-                  if (await cheackIfExist(email!)) {
-                    setState(() {
-                      conntact.add(ContactModel(name: name, email: email));
-                    });
-                    SupabaseServices().addContact(
-                      currentUesrId: supabase.auth.currentUser!.id,
-                      contactUserId: contact_id,
-                      name: name!,
-                    );
+                  if (email != supabase.auth.currentUser!.email) {
+                    bool isadded = cheackIfAdded(email: email!);
+                    if (await SupabaseServices().cheackIfExist(email!) &&
+                        !isadded) {
+                      dynamic id = await SupabaseServices().selectFromTable(
+                          tableName: "profiles",
+                          rowName: 'id',
+                          filterColumn: 'email',
+                          filterValue: email);
+                      print("==== = = == =  = ${id[0]['id']}");
+                      SupabaseServices().addContact(
+                        currentUesrId: supabase.auth.currentUser!.id,
+                        contactUserId: id[0]['id'],
+                        name: name!,
+                        email: email!,
+                      );
+                      var d = SupabaseServices().addChatRoom(
+                          memb1: supabase.auth.currentUser!.id,
+                          memb2: id[0]['id']);
+                      print('d = = = = $d ');
+
+                      setState(() {
+                        conntact.add(ContactModel(
+                            name: name, email: email, contactId: id[0]['id']));
+                      });
+                    } else {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: isadded == true
+                                ? const Text('The User is already exsit')
+                                : const Text('The User dont have acount')),
+                      );
+                    }
                   } else {
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                          content: Text('The User dont have acount')),
+                          content: Text('This email is for this account')),
                     );
                   }
                   if (!context.mounted) return;
@@ -143,5 +203,14 @@ class _AccountViewState extends State<AccountView> {
             ],
           );
         });
+  }
+
+  bool cheackIfAdded({required String email}) {
+    for (int i = 0; i < conntact.length; i++) {
+      if (conntact[i].email == email) {
+        return true;
+      }
+    }
+    return false;
   }
 }
