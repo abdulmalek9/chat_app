@@ -14,10 +14,26 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 const supabaseUrl = 'https://nrvgmmktbfjkyvwfmwsy.supabase.co';
 String supabaseKey = dotenv.env['SUPABASE_KEY'].toString();
+bool _redirecting = false;
+SupabaseClient supabase = Supabase.instance.client;
+String root = '';
 Future<void> main() async {
   await dotenv.load(fileName: "lib/.env"); //path to your .env file);
   // print("======================= s $supabaseKey");
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
+
+  supabase.auth.onAuthStateChange.listen((data) {
+    if (_redirecting) {
+      return;
+    }
+    final session = data.session;
+    if (session != null) {
+      _redirecting = true;
+      root = 'account_view';
+    } else {
+      root = 'onboarding_view';
+    }
+  });
   runApp(const ChatApp());
 }
 
@@ -38,7 +54,7 @@ class ChatApp extends StatelessWidget {
       theme: lightThemeData(context),
       darkTheme: darkThemeData(context),
       themeMode: ThemeMode.system,
-      initialRoute: 'onboarding_view',
+      initialRoute: root, //'onboarding_view',
       debugShowCheckedModeBanner: false,
     );
   }

@@ -1,12 +1,10 @@
 import 'dart:developer';
 
 import 'package:chat_app/models/message_model.dart';
-import 'package:chat_app/models/profile_model.dart';
 import 'package:chat_app/supabase/supabase_class.dart';
+import 'package:chat_app/widgets/chat_bubble.dart';
 import 'package:chat_app/widgets/input_field.dart';
-
 import 'package:flutter/material.dart';
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ChatView extends StatefulWidget {
@@ -27,13 +25,14 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
   //       isMine: true)
   // ]);
   // late final dynamic messagesStream;
-  final Map<String, Profile> _profileCache = {};
+  // final Map<String, Profile> _profileCache = {};
   final SupabaseClient supabase = Supabase.instance.client;
   String? textMessage;
   late String myUserId;
   late String contactId;
   var chatId;
-  TextEditingController? controller;
+  TextEditingController? controller = TextEditingController();
+  bool isEmpty = true;
 
   @override
   void initState() {
@@ -78,6 +77,7 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
               .toList());
       setState(() {});
       log("message ===== $messagesStream");
+      isEmpty = false;
     }
   }
 
@@ -111,19 +111,6 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
   //   super.initState();
   // }
 
-  Future<void> _loadProfileCache(String profileId) async {
-    if (_profileCache[profileId] != null) {
-      return;
-    }
-    final data =
-        await supabase.from('profiles').select().eq('id', profileId).single();
-    final profile = Profile.fromMap(data);
-    if (!mounted) return;
-    setState(() {
-      _profileCache[profileId] = profile;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -131,119 +118,72 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
         title: const Text("Chat"),
         backgroundColor: Theme.of(context).primaryColor,
       ),
-      body: StreamBuilder(
-          stream: messagesStream,
-          builder: (context, snapshot) {
-            // if (!(!snapshot.hasData || snapshot.data!.isEmpty)) {
-            final messages = (!snapshot.hasData || snapshot.data!.isEmpty)
-                ? []
-                : snapshot.data!;
-            return Column(
-              children: [
-                Expanded(
-                  child: messages.isEmpty
-                      ? const Center(
-                          child: Text('Start your conversation now :)'),
-                        )
-                      : ListView.builder(
-                          reverse: true,
-                          itemCount: messages.length,
-                          itemBuilder: (context, index) {
-                            final message = messages[index];
+      body: isEmpty == true
+          ? const Center(child: CircularProgressIndicator())
+          : StreamBuilder(
+              stream: messagesStream,
+              builder: (context, snapshot) {
+                // if (!(!snapshot.hasData || snapshot.data!.isEmpty)) {
+                final messages = (!snapshot.hasData || snapshot.data!.isEmpty)
+                    ? []
+                    : snapshot.data!;
+                return Column(
+                  children: [
+                    Expanded(
+                      child: messages.isEmpty
+                          ? const Center(
+                              child: Text('Start your conversation now :)'),
+                            )
+                          : ListView.builder(
+                              reverse: true,
+                              itemCount: messages.length,
+                              itemBuilder: (context, index) {
+                                final message = messages[index];
 
-                            /// I know it's not good to include code that is not related
-                            /// to rendering the widget inside build method, but for
-                            /// creating an app quick and dirty, it's fine 😂
-                            _loadProfileCache(message.profileId);
+                                ///_loadProfileCache(message.profileId);
 
-                            return ChatBubble(
-                              message: message,
-                              profile: _profileCache[message.profileId],
-                            );
-                          },
-                        ),
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                InputField(
-                  controller: controller,
-                  onChanged: (message) {
-                    setState(() {
-                      textMessage = message;
-                      // controller!.clear();
-                    });
-                  },
-                  onPressed: () async {
-                    await SupabaseServices().supabase.from('messages').insert([
-                      {
-                        'content': textMessage,
-                        'profile_id':
-                            SupabaseServices().supabase.auth.currentUser!.id,
-                        'receiver_id': contactId,
-                        'chat_id': chatId
-                      }
-                    ]);
-                  },
-                ),
-              ],
-            );
-            // } else {
-            // return const Center(child: CircularProgressIndicator());
-            // }
-          }),
-    );
-  }
-}
-
-class ChatBubble extends StatelessWidget {
-  const ChatBubble({
-    super.key,
-    required this.message,
-    required this.profile,
-  });
-
-  final Message message;
-  final Profile? profile;
-
-  @override
-  Widget build(BuildContext context) {
-    List<Widget> chatContents = [
-      if (!message.isMine)
-        CircleAvatar(
-          child: profile == null
-              ? const SizedBox()
-              : Text(profile!.username.substring(0, 2)),
-        ),
-      const SizedBox(width: 12),
-      Flexible(
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            vertical: 8,
-            horizontal: 12,
-          ),
-          decoration: BoxDecoration(
-            color:
-                message.isMine ? Theme.of(context).primaryColor : Colors.purple,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Text(message.content),
-        ),
-      ),
-      const SizedBox(width: 12),
-      // Text(format(message.createdAt, locale: 'en_short')),
-      const SizedBox(width: 60),
-    ];
-    if (message.isMine) {
-      chatContents = chatContents.reversed.toList();
-    }
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 11),
-      child: Row(
-        mainAxisAlignment:
-            message.isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
-        children: chatContents,
-      ),
+                                return ChatBubble(
+                                  message: message,
+                                  //profile: _profileCache[message.profileId],
+                                );
+                              },
+                            ),
+                    ),
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    InputField(
+                      controller: controller,
+                      onChanged: (message) {
+                        setState(() {
+                          textMessage = message;
+                        });
+                      },
+                      onPressed: () async {
+                        controller!.clear();
+                        await SupabaseServices()
+                            .supabase
+                            .from('messages')
+                            .insert([
+                          {
+                            'content': textMessage,
+                            'profile_id': SupabaseServices()
+                                .supabase
+                                .auth
+                                .currentUser!
+                                .id,
+                            'receiver_id': contactId,
+                            'chat_id': chatId
+                          }
+                        ]);
+                      },
+                    ),
+                  ],
+                );
+                // } else {
+                // return const Center(child: CircularProgressIndicator());
+                // }
+              }),
     );
   }
 }
