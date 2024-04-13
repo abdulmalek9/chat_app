@@ -30,6 +30,7 @@ class _ChatBubbleState extends State<ChatBubble> {
         .single();
     final profileFromMap = Profile.fromMap(data);
 
+    if (!mounted) return;
     setState(() {
       _profileCache[profileId] = profileFromMap;
       profile = _profileCache[widget.message.profileId];

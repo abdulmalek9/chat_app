@@ -21,9 +21,10 @@ class SupabaseServices {
   getContact() async {
     List<Map<String, dynamic>>? info = await SupabaseServices().selectFromTable(
         tableName: "contact",
-        rowName: 'contactUserId, email, contactName',
+        columnName: 'contactUserId, email, contactName',
         filterColumn: 'currentUesrId',
         filterValue: supabase.auth.currentUser!.id);
+
     if (info == null) {
       return [];
     } else {
@@ -31,21 +32,65 @@ class SupabaseServices {
     }
   }
 
+  deleteContactFromAccount(
+      {required String contactId,
+      required String userId,
+      required bool checkboxDelete}) async {
+    supabase
+        .from('contact')
+        .delete()
+        .eq("currentUesrId", userId)
+        .eq("contactUserId", contactId)
+        .then((response) =>
+            log("Delete all contacts from account ${response.toString()}"))
+        .catchError(
+            (error) => log("Error deleting all contacts from account $error"));
+
+    if (checkboxDelete) {
+      log("check box is $checkboxDelete");
+      var chatId = await getChatRoomId(contactId, userId);
+      supabase
+          .from('messages')
+          .delete()
+          .eq('chat_id', chatId)
+          .then((value) => log("The chat room is deleted $value"))
+          .catchError((error) => log("Error in deleting $error"));
+      supabase
+          .from('chat_room')
+          .delete()
+          .eq("id", chatId)
+          .then((value) => log("The chat room is deleted $value"))
+          .catchError((error) => log("Error in deleting $error"));
+      supabase
+          .from('contact')
+          .delete()
+          .eq("currentUesrId", contactId)
+          .eq("contactUserId", userId)
+          .then((response) =>
+              log("Delete all contacts from account ${response.toString()}"))
+          .catchError((error) =>
+              log("Error deleting all contacts from account $error"));
+    }
+  }
+
   selectFromTable(
       {required String tableName,
-      String? rowName,
+      String? columnName,
       String? filterColumn,
       String? filterValue}) async {
-    if (rowName == null && filterColumn == null && filterValue == null) {
+    if (columnName == null && filterColumn == null && filterValue == null) {
       return await supabase.from(tableName).select();
-    } else if (filterColumn == null && filterValue == null && rowName != null) {
-      dynamic qb = await supabase.from(tableName).select(rowName);
+    } else if (filterColumn == null &&
+        filterValue == null &&
+        columnName != null) {
+      dynamic qb = await supabase.from(tableName).select(columnName);
       return qb;
     } else if (filterColumn != null && filterValue != null) {
       dynamic qb = await supabase
           .from(tableName)
-          .select(rowName!)
-          .eq(filterColumn, filterValue);
+          .select(columnName!)
+          .eq(filterColumn, filterValue)
+          .catchError((error) => log("error is $error"));
       return qb;
     }
   }
@@ -69,7 +114,7 @@ class SupabaseServices {
 
   addChatRoom({required String memb1, required String memb2}) async {
     var id = await selectFromTable(tableName: 'chat_room');
-    log("id = = = = = =  = $id");
+    // log("id = = = = = =  = $id");
 
     if (!id.isEmpty) {
       final r = await cheakIfChatRoomExist(id: id, memb1: memb1, memb2: memb2);

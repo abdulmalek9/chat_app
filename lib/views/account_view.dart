@@ -24,7 +24,7 @@ class _AccountViewState extends State<AccountView> {
   initContact() async {
     List<Map<String, dynamic>> initContact =
         await SupabaseServices().getContact();
-    log("init contact is = = = = = = $initContact");
+    // log("init contact is = = = = = = $initContact");
     if (initContact.isEmpty) {
       return [];
     } else {
@@ -44,6 +44,7 @@ class _AccountViewState extends State<AccountView> {
         } else {
           log("coco == = = = = ${info[0]['email']}");
           for (int i = 0; i < info.length; i++) {
+            if (!mounted) return;
             setState(() {
               conntact.add(ContactModel(
                   name: info[i]["contactName"],
@@ -54,6 +55,7 @@ class _AccountViewState extends State<AccountView> {
           isLoading = false;
         }
       });
+      cheakNewMessageFromNewUser();
     }
     isLoading = false;
     log("inof is = = = = = = = $info");
@@ -98,25 +100,139 @@ class _AccountViewState extends State<AccountView> {
       ),
       body: isLoading == true
           ? conntact.isEmpty
-              ? const SizedBox()
+              ? const Center(
+                  child: Text("Add new Contact to start the spark"),
+                )
               : const Center(
                   child: CircularProgressIndicator(),
                 )
           : ListView.builder(
-              itemBuilder: (context, i) => GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, const ChatView().chatViewId,
-                      arguments: conntact[i].contactId);
-                },
-                child: ContactWidget(
-                  image: "assets/majed.jpg",
-                  name: conntact[i].name!,
-                  lastmessage: "Hello, Do you wanna build a snow man?",
-                ),
-              ),
+              itemBuilder: (context, i) {
+                cheakNewMessageFromNewUser();
+                return InkWell(
+                  onTap: () {
+                    Navigator.pushNamed(context, const ChatView().chatViewId,
+                        arguments: conntact[i].contactId);
+                  },
+                  onLongPress: () {
+                    if (!mounted) return;
+                    deleteContactMethod(context, i);
+                  },
+                  child: ContactWidget(
+                    image: "assets/majed.jpg",
+                    name: conntact[i].name!,
+                    lastmessage: "Hello, Do you wanna build a snow man?",
+                  ),
+                );
+              },
               itemCount: conntact.isEmpty ? 0 : conntact.length,
             ),
     ));
+  }
+
+  late bool checkBox;
+  deleteContactMethod(BuildContext context, int i) {
+    checkBox = false;
+    if (!mounted) return;
+    return showDialog<AlertDialog>(
+        context: context,
+        builder: (_) => AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const Text(
+                    "Do you want to delete this account?",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const Divider(
+                      thickness: 0.8,
+                      endIndent: 14 //MediaQuery.of(context).size.width - 1,
+                      ),
+                  StatefulBuilder(
+                    builder: (context, setState) => Row(
+                      children: [
+                        Checkbox(
+                            value: checkBox,
+                            onChanged: (value) {
+                              setState(() {
+                                checkBox = value!;
+                              });
+                              print(checkBox);
+                            }),
+                        const Text("Delete Conversation From Tow side")
+                      ],
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                          onPressed: () async {
+                            SupabaseServices().deleteContactFromAccount(
+                                checkboxDelete: checkBox,
+                                userId: supabase.auth.currentUser!.id,
+                                contactId: conntact[i].contactId!);
+                            setState(() {
+                              conntact.removeAt(i);
+                              checkBox = false;
+                            });
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            "yes",
+                            style: TextStyle(fontSize: 16),
+                          )),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          "cancel",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ));
+  }
+
+  cheakNewMessageFromNewUser() async {
+    supabase
+        .channel('public:contact')
+        .onPostgresChanges(
+            event: PostgresChangeEvent.insert,
+            schema: 'public',
+            table: 'contact',
+            callback: (payload) async {
+              print('Change received: ${payload.newRecord.toString()}');
+              // var newRecord = payload.newRecord;
+              if (payload.newRecord['contactUserId'] ==
+                  supabase.auth.currentUser!.id) {
+                var info = await SupabaseServices().selectFromTable(
+                    tableName: 'profiles',
+                    columnName: '',
+                    filterColumn: 'id',
+                    filterValue: payload.newRecord['currentUesrId']);
+                log('info  = = = = = $info');
+                setState(() {
+                  conntact.add(ContactModel(
+                      name: info[0]['username'].toString(),
+                      email: info[0]['email'].toString(),
+                      contactId:
+                          payload.newRecord['currentUesrId'].toString()));
+                });
+                SupabaseServices().addContact(
+                  name: info[0]['username'].toString(),
+                  email: info[0]['email'].toString(),
+                  currentUesrId: supabase.auth.currentUser!.id,
+                  contactUserId: payload.newRecord['currentUesrId'].toString(),
+                );
+                print("done");
+              }
+            })
+        .subscribe();
   }
 
   openDialog(context) {
@@ -160,7 +276,7 @@ class _AccountViewState extends State<AccountView> {
                         !isadded) {
                       dynamic id = await SupabaseServices().selectFromTable(
                           tableName: "profiles",
-                          rowName: 'id',
+                          columnName: 'id',
                           filterColumn: 'email',
                           filterValue: email);
                       print("==== = = == =  = ${id[0]['id']}");

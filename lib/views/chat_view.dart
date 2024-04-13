@@ -139,12 +139,8 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
                               itemCount: messages.length,
                               itemBuilder: (context, index) {
                                 final message = messages[index];
-
-                                ///_loadProfileCache(message.profileId);
-
                                 return ChatBubble(
                                   message: message,
-                                  //profile: _profileCache[message.profileId],
                                 );
                               },
                             ),

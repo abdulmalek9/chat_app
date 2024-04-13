@@ -37,49 +37,54 @@ class _OnBoardingViewState extends State<OnBoardingView> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: Column(
-          children: [
-            const SizedBox(height: 50),
-            Image.asset("assets/onboarding.png"),
-            const SizedBox(
-              height: 70,
-            ),
-            const Text(
-              "Welcome to our Spark \nmessaging app",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(
-              height: 24,
-            ),
-            const Text(
-              "Start the Spark between you\nand your friends",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
-            ),
-            const SizedBox(
-              height: 48,
-            ),
-            GestureDetector(
-              onTap: () {
-                Navigator.pushReplacementNamed(context, 'first_view');
-              },
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    "Skip",
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  Icon(
-                    Icons.keyboard_arrow_right_outlined,
-                    size: 18,
-                  )
-                ],
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 50),
+              Image.asset(
+                "assets/onboarding.png",
+                width: MediaQuery.of(context).size.width - 2,
               ),
-            )
-          ],
+              const SizedBox(
+                height: 70,
+              ),
+              const Text(
+                "Welcome to our Spark \nmessaging app",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(
+                height: 24,
+              ),
+              const Text(
+                "Start the Spark between you\nand your friends",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+              ),
+              const SizedBox(
+                height: 48,
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacementNamed(context, 'first_view');
+                },
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Skip",
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    Icon(
+                      Icons.keyboard_arrow_right_outlined,
+                      size: 18,
+                    )
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );

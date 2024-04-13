@@ -39,12 +39,15 @@ class ContactWidget extends StatelessWidget {
                   Text(
                     lastmessage,
                     style: const TextStyle(fontSize: 12, color: Colors.white38),
-                  )
+                  ),
                 ],
               )
             ],
           ),
-        )
+        ),
+        const SizedBox(
+          height: 12,
+        ),
       ],
     );
   }
